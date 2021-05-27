@@ -1,0 +1,294 @@
+#include <iostream>
+#include <string>
+#include <Windows.h>
+using namespace std;
+
+// Проверка что в строке только цифры, вынесено из класса для лучшей читаемости кода
+bool is_digits(const string &str) {
+    return str.find_first_not_of("0123456789") == string::npos;
+};
+
+// Процессинговый центр
+class ProcessCenter
+{
+public:
+    // Структура пользователя, используется в базе данных пользователей
+    struct User {
+        string cardNumber;
+        string fullName;
+        int balance;
+        string pincode;
+    };
+
+    // Информация о клиенте состоит из номера карты, ФИО владельца, суммы на счету, PIN-кода.
+    // База данных пользователей, используется исключительно для демонстрирования работы классов
+    User userDataBase[3] = {
+        {"3255","Соболев Алексей Петрович",36325,"3733"},
+        {"9734","Хрусталёв Владимир Валерьевич",47680,"8474"},
+        {"1366","Смирнова Ольга Андреевна",869,"3578"}
+    };
+};
+
+// Банкомат 
+class CashMachine
+{
+private:
+    const int maxBillOnOperation = 40;      // Выдаваемая или принимаемая за одну операцию сумма ограничена 40 купюрами
+    const int billTapeVolume = 2000;        // Емкость каждой кассеты – 2000 тысяч купюр
+    const float tapeBootstrapping = 0.8;    // начальная загрузка банкомата составляет 80% для каждой кассеты
+    int tape100 = billTapeVolume * 0.8;
+    int tape200 = billTapeVolume * 0.8;
+    int tape500 = billTapeVolume * 0.8;
+    int tape1000 = billTapeVolume * 0.8;
+    int tape2000 = billTapeVolume * 0.8;
+    int tape5000 = billTapeVolume * 0.8;
+
+    void addToTape(int formatOfBill) {
+        switch (formatOfBill) {
+        case 100:
+            if (tape100 < billTapeVolume)
+                tape100++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        case 200:
+            if (tape200 < billTapeVolume)
+                tape200++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        case 500:
+            if (tape500 < billTapeVolume)
+                tape500++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        case 1000:
+            if (tape1000 < billTapeVolume)
+                tape1000++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        case 2000:
+            if (tape2000 < billTapeVolume)
+                tape2000++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        case 5000:
+            if (tape5000 < billTapeVolume)
+                tape5000++;
+            else
+                cout << "кассета данной валюты переполнена" << endl;
+            break;
+        }
+    }
+
+    void minusFromTape(int formatOfBill) {
+        switch (formatOfBill) {
+        case 100:
+            if (tape100 > 0)
+                tape100--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        case 200:
+            if (tape200 > 0)
+                tape200--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        case 500:
+            if (tape500 > 0)
+                tape500--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        case 1000:
+            if (tape1000 > 0)
+                tape1000--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        case 2000:
+            if (tape2000 > 0)
+                tape2000--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        case 5000:
+            if (tape5000 > 0)
+                tape5000--;
+            else
+                cout << "кассета данной валюты пуста" << endl;
+            break;
+        }
+    }
+
+public:
+
+
+    // Формат принимаемых купюр
+    int formatOfBill[6] = { 100, 200, 500, 1000, 2000, 5000 };
+
+    // Функция, проверяющая корректность внесённой в банкомат купюры
+    bool billFormatValidate(int bill) {
+        for (auto &element : formatOfBill)
+            if (element == bill)
+                return true;
+
+        return false;
+    };
+
+    // Принятие карты клиента
+    string acceptCard() {
+        cout << "Здравствуйте! Введите номер вашей карты:" << std::endl;
+        string cardNumber;
+        cin >> cardNumber;
+        return cardNumber;
+    };
+
+    // Клиент банка идентифицируется по номеру пластиковой карты
+    bool userIdentification(string cardNumber, ProcessCenter& processCenter) {
+        if (is_digits(cardNumber)) {
+            if (cardNumber.length() != 4)
+            {
+                cout << "Неверный формат карты" << cardNumber << endl;
+                return false;
+            }
+            else {
+                for (auto userAccount : processCenter.userDataBase)
+                    if (userAccount.cardNumber == cardNumber) {
+                        for (int i = 1; i <= 3; i++) {
+                            cout << "Пользователь найден" << endl;
+                            cout << "Введите ваш PIN-код" << endl;
+                            string tempPincode;
+                            cin >> tempPincode;
+
+                            for (auto userAccount : processCenter.userDataBase)
+                                if (userAccount.pincode == tempPincode) {
+                                    cout << "Идентификация пройдена успешно!" << endl;
+                                    return true;
+                                }
+
+                            cout << "Неверный PIN-код!" << endl;
+                        }
+
+                        cout << "PIN-код! Введён неверно 3 раза. Карта заблокирована!" << endl;
+                        return false;
+                    }
+                cout << "Пользователь не найден" << endl;
+                return false;
+            }
+        }
+
+        cout << "Неверный формат карты" << cardNumber << endl;
+        return false;
+    }
+
+    // Вывод средств карты
+    void withdraw(string cardNumber, ProcessCenter& processCenter) {
+        cout << "Выбирайте купюры поочерёдно. После выбора суммы введите -1" << endl;
+        int money = 0;
+        while (true) {
+            bool flag = false;
+            string str;
+            cin >> str;
+            if (str == "-1") {
+                break;
+            }
+            for (auto &bill : formatOfBill)
+                if (bill == stoi(str)) {
+                    flag = true;
+                    minusFromTape(stoi(str));
+                    break;
+                }
+
+            if (flag == true)
+                money += stoi(str);
+            else
+                cout << "Данная купюра не поддерживается!" << endl;
+        }
+
+        for (auto &userAccount : processCenter.userDataBase)
+            if (userAccount.cardNumber == cardNumber)
+                userAccount.balance -= money;
+    }
+
+    // Пополнение баланса карты
+    void replenish(string cardNumber, ProcessCenter& processCenter) {
+        cout << "Вносите купюры поочерёдно. После внесения суммы введите -1" << endl;
+        int money = 0;
+        while (true) {
+            bool flag = false;
+            string str;
+            cin >> str;
+            if (str == "-1") {
+                break;
+            }
+            for (auto &bill : formatOfBill)
+                if (bill == stoi(str)) {
+                    flag = true;
+                    addToTape(stoi(str));
+                    break;
+                }
+
+            if (flag == true)
+                money += stoi(str);
+            else
+                cout << "Данная купюра не поддерживается!" << endl;
+        }
+
+        for (auto& userAccount : processCenter.userDataBase)
+            if (userAccount.cardNumber == cardNumber)
+                userAccount.balance += money;
+    }
+
+    // Вывод информации о профиле
+    int profileMenu(string cardNumber, ProcessCenter &processCenter) {
+        for (auto &userAccount : processCenter.userDataBase)
+            if (userAccount.cardNumber == cardNumber) {
+                cout << userAccount.fullName << endl;
+                cout << userAccount.balance << endl;
+                break;
+            }
+
+        cout << "Выберите нужную операцию: " << endl;
+        cout << "1. Снять деньги с баланса карты" << endl;
+        cout << "2. Пополнить баланс карты" << endl;
+        cout << "3. Выход" << endl;
+
+        int operation;
+        cin >> operation;
+        return operation;
+    }
+
+    void work(ProcessCenter &processCenter) {
+        string cardNumber = acceptCard();
+        if (userIdentification(cardNumber, processCenter)) {
+            while (true) {
+                int operation = profileMenu(cardNumber, processCenter);
+                if (operation == 3)
+                    break;
+                if (operation == 1)
+                    withdraw(cardNumber, processCenter);
+                if (operation == 2)
+                    replenish(cardNumber, processCenter);
+            }
+        }
+    }
+};
+
+int main()
+{
+    setlocale(0, ".1251");
+
+    CashMachine cashMachine;
+    ProcessCenter processCenter;
+
+    while (true) 
+    {
+        cashMachine.work(processCenter);
+    }
+    return 0;
+}
